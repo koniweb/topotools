@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# TopoTools, a VMD package to simplify manipulating bonds 
+# TopoTools, a VMD package to simplify manipulating bonds
 # other topology related properties in VMD.
 #
 # Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -69,7 +69,7 @@ proc ::TopoTools::mergemols {mids} {
 
         set list [topo getanglelist -molid $m]
         foreach l $list {
-            lassign $l t a b c 
+            lassign $l t a b c
             lappend anglelist [list $t [expr {$a+$off}] [expr {$b+$off}] [expr {$c+$off}]]
         }
 
@@ -186,7 +186,7 @@ proc ::TopoTools::selections2mol {sellist} {
 
         set list [topo getanglelist -sel $sel]
         foreach l $list {
-            lassign $l t a b c 
+            lassign $l t a b c
             set anew [expr [lsearch -sorted -integer $atomidmap $a] + $off]
             set bnew [expr [lsearch -sorted -integer $atomidmap $b] + $off]
             set cnew [expr [lsearch -sorted -integer $atomidmap $c] + $off]
@@ -211,7 +211,7 @@ proc ::TopoTools::selections2mol {sellist} {
             set dnew [expr [lsearch -sorted -integer $atomidmap $d] + $off]
             lappend improperlist [list $t  $anew $bnew $cnew $dnew]
         }
-        
+
         set list [topo getcrosstermlist -sel $sel]
         foreach l $list {
         	lassign $l a b c d e f g h
@@ -259,9 +259,11 @@ proc ::TopoTools::selections2mol {sellist} {
 # create a larger system by replicating the original unitcell
 # arguments: molecule id of molecule to replicate
 #            multiples of the cell vectors defaulting to 1
-# notes:     the cell is assumed to be orthorhombic.
+# support for non-orthogonal cells contributed by Konstantin W
+#            https://github.com/koniweb/
 #
 proc ::TopoTools::replicatemol {mol nx ny nz} {
+    global M_PI
 
     if {[string equal $mol top]} {
         set mol [molinfo top]
@@ -340,7 +342,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
 
 	# calculate movevec for nonorthogonal boxes
         set movevec {0.0 0.0 0.0}
-	set deg2rad [expr 3.141592 / 180]
+	set deg2rad [expr $M_PI / 180]
 	set alpharad [expr [lindex $boxtilt 0] * $deg2rad ]
 	set betarad  [expr [lindex $boxtilt 1] * $deg2rad ]
 	set gammarad [expr [lindex $boxtilt 2] * $deg2rad ]
@@ -373,7 +375,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
         }
 
         foreach l $oanglist {
-            lassign $l t a b c 
+            lassign $l t a b c
             lappend anglelist [list $t [expr {$a + $ntotal}] [expr {$b + $ntotal}] \
                                     [expr {$c + $ntotal}]]
         }
@@ -395,7 +397,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
                                     [expr {$e + $ntotal}] [expr {$f + $ntotal}] \
                                     [expr {$g + $ntotal}] [expr {$h + $ntotal}]]
 		}
-        incr ntotal [$oldsel num]            
+        incr ntotal [$oldsel num]
         $newsel delete
     }
     # apply structure info
@@ -404,7 +406,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     topo setdihedrallist -molid $newmol $dihedrallist
     topo setimproperlist -molid $newmol $improperlist
     topo setcrosstermlist -molid $mol $ctermlist
-    
+
     variable newaddsrep
     mol reanalyze $newmol
     if {$newaddsrep} {
